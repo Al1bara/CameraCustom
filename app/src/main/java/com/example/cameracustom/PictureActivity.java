@@ -109,7 +109,7 @@ public class PictureActivity extends AppCompatActivity {
 
     }
 
-    public void onClick(View view){
+    public void onClicks(View view){
         StringRequest stringRequest = new StringRequest(Request.Method.POST, url,
                 new Response.Listener<String>() {
                     @Override

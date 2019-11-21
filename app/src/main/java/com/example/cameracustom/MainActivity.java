@@ -11,6 +11,7 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Build;
+import android.os.CountDownTimer;
 import android.provider.MediaStore;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -22,11 +23,13 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 public class MainActivity extends AppCompatActivity {
-
+    Button Agree;
+    ImageView deck;
     Camera camera;
     FrameLayout frameLayout;
     TextView textViewX, textViewY, textViewZ;
-//    ImageView imageView;
+//    ImageView imageView;'
+    TextView counter;
     Button button;
     Show show;
     static Bitmap bitmap;
@@ -56,9 +59,9 @@ public class MainActivity extends AppCompatActivity {
         button = findViewById(R.id.button);
         SensorManager sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
         Sensor rotationSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR);
-
-
-
+        counter=findViewById(R.id.counter);
+        Agree=findViewById(R.id.Agree);
+        deck=findViewById(R.id.image);
         // Create an instance of camera
         camera = getCameraInstance();
         camera.setDisplayOrientation(90);
@@ -75,16 +78,38 @@ public class MainActivity extends AppCompatActivity {
         params.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
         camera.setParameters(params);
 
+        Agree.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Agree.setVisibility(View.INVISIBLE);
+                deck.setVisibility(View.INVISIBLE);
+            }
+        });
     }
     public void onClick(View view){
-        camera.takePicture(null, null, picture);
+        new CountDownTimer(5000,1000){
+
+            @Override
+            public void onTick(long millisUntilFinished) {
+                counter.setText(""+((int)millisUntilFinished/1000));
+            }
+
+            @Override
+            public void onFinish() {
+                counter.setVisibility(View.INVISIBLE);
+                camera.takePicture(null, null, picture);
+            }
+
+
+        }.start();
+
     }
+
 
     // Create a listener
     SensorEventListener rvListener = new SensorEventListener() {
         @Override
         public void onSensorChanged(SensorEvent sensorEvent) {
-            // More code goes here
             float[] rotationMatrix = new float[16];
             SensorManager.getRotationMatrixFromVector(rotationMatrix, sensorEvent.values);
             float[] remappedRotationMatrix = new float[16];
