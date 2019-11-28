@@ -21,10 +21,9 @@ import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
-public class MainActivity extends AppCompatActivity {
-    Button Agree;
-    ImageView deck;
+public class MainActivity extends AppCompatActivity implements SensorEventListener {
     Camera camera;
     FrameLayout frameLayout;
     TextView textViewX, textViewY, textViewZ;
@@ -32,6 +31,9 @@ public class MainActivity extends AppCompatActivity {
     TextView counter;
     Button button;
     Show show;
+
+    SensorManager sensorManager;
+    Sensor rotationSensor;
     static Bitmap bitmap;
     Camera.PictureCallback mPicture;
     final private int MY_REQUEST_CODE = 123;
@@ -52,16 +54,14 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         frameLayout = findViewById(R.id.camera_preview);
-//        imageView = findViewById(R.id.imageView);
         textViewX = findViewById(R.id.textViewX);
         textViewY = findViewById(R.id.textViewY);
         textViewZ = findViewById(R.id.textViewZ);
         button = findViewById(R.id.button);
-        SensorManager sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
-        Sensor rotationSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR);
-        counter=findViewById(R.id.counter);
-        Agree=findViewById(R.id.Agree);
-        deck=findViewById(R.id.image);
+        sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
+        rotationSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR);
+        counter = findViewById(R.id.counter);
+
         // Create an instance of camera
         camera = getCameraInstance();
         camera.setDisplayOrientation(90);
@@ -73,27 +73,18 @@ public class MainActivity extends AppCompatActivity {
         CheckCameraPermissions();
 
 
-        // to autofocus
+        // to auto-focus
         Camera.Parameters params = camera.getParameters();
         params.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
         camera.setParameters(params);
 
-        Agree.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Agree.setVisibility(View.INVISIBLE);
-                deck.setVisibility(View.INVISIBLE);
-            }
-        });
     }
     public void onClick(View view){
-        new CountDownTimer(5000,1000){
-
+        new CountDownTimer(9000,1000){
             @Override
             public void onTick(long millisUntilFinished) {
                 counter.setText(""+((int)millisUntilFinished/1000));
             }
-
             @Override
             public void onFinish() {
                 counter.setVisibility(View.INVISIBLE);
@@ -102,18 +93,18 @@ public class MainActivity extends AppCompatActivity {
 
 
         }.start();
-
     }
 
 
     // Create a listener
-    SensorEventListener rvListener = new SensorEventListener() {
         @Override
         public void onSensorChanged(SensorEvent sensorEvent) {
             float[] rotationMatrix = new float[16];
             SensorManager.getRotationMatrixFromVector(rotationMatrix, sensorEvent.values);
             float[] remappedRotationMatrix = new float[16];
-            SensorManager.remapCoordinateSystem(rotationMatrix, SensorManager.AXIS_X, SensorManager.AXIS_Z, remappedRotationMatrix);
+            SensorManager.remapCoordinateSystem(rotationMatrix, SensorManager.AXIS_X,
+                    SensorManager.AXIS_Z, remappedRotationMatrix);
+
             // Convert to orientations
             float[] orientations = new float[3];
             SensorManager.getOrientation(remappedRotationMatrix, orientations);
@@ -127,16 +118,16 @@ public class MainActivity extends AppCompatActivity {
             textViewZ.setText("Z: "+orientations[2]);
 
 //             take pic in 90 degree
-            if ((orientations[2] < 1 & orientations[2] > -1) && (orientations[1] < 1 & orientations[1] > -1) ){
+            if ((orientations[2] < 1 & orientations[2] > -1) &&
+                    (orientations[1] < 11 & orientations[1] > -1) ){
                 button.setVisibility(View.VISIBLE);
             }else
                 button.setVisibility(View.GONE);
     }
 
         @Override
-        public void onAccuracyChanged(Sensor sensor, int i) {
-        }
-    };
+        public void onAccuracyChanged(Sensor sensor, int i) {}
+
 
 
 //        go to upload activity
@@ -194,4 +185,18 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        sensorManager.unregisterListener(this);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        sensorManager.registerListener(this,
+                rotationSensor,
+                SensorManager.SENSOR_DELAY_NORMAL);
+    }
 }
