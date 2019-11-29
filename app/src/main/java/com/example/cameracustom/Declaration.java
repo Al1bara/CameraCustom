@@ -6,12 +6,12 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 
-public class firstActivity extends AppCompatActivity {
+public class Declaration extends AppCompatActivity {
     private Button button;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_first);
+        setContentView(R.layout.declaration);
         button = findViewById(R.id.agree);
         button.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -22,7 +22,7 @@ public class firstActivity extends AppCompatActivity {
     }
 
     public void openActivity(){
-        Intent intent = new Intent(this, MainActivity.class);
+        Intent intent = new Intent(this, CameraPic.class);
         startActivity(intent);
     }
 }

@@ -12,22 +12,17 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Build;
 import android.os.CountDownTimer;
-import android.provider.MediaStore;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.FrameLayout;
-import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
-public class MainActivity extends AppCompatActivity implements SensorEventListener {
+public class CameraPic extends AppCompatActivity implements SensorEventListener {
     Camera camera;
     FrameLayout frameLayout;
-    TextView textViewX, textViewY, textViewZ;
-//    ImageView imageView;'
     TextView counter;
     Button button;
     Show show;
@@ -52,11 +47,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     protected void onCreate(Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.camera);
         frameLayout = findViewById(R.id.camera_preview);
-        textViewX = findViewById(R.id.textViewX);
-        textViewY = findViewById(R.id.textViewY);
-        textViewZ = findViewById(R.id.textViewZ);
         button = findViewById(R.id.button);
         sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
         rotationSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR);
@@ -113,10 +105,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 orientations[i] = (float)(Math.toDegrees(orientations[i]));
             }
 
-            textViewX.setText("X: " + orientations[0]);
-            textViewY.setText("Y: " +orientations[1]);
-            textViewZ.setText("Z: "+orientations[2]);
-
 //             take pic in 90 degree
             if ((orientations[2] < 1 & orientations[2] > -1) &&
                     (orientations[1] < 11 & orientations[1] > -1) ){
@@ -135,7 +123,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             @Override
             public void onPictureTaken(byte[] data, Camera camera) {
                 bitmap = BitmapFactory.decodeByteArray(data, 0, data.length);
-                Intent intent = new Intent(MainActivity.this,PictureActivity.class);
+                Intent intent = new Intent(CameraPic.this, UploadPic.class);
                 startActivity(intent);
             }
         };

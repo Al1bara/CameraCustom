@@ -1,6 +1,7 @@
 package com.example.cameracustom;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Matrix;
 import android.graphics.drawable.BitmapDrawable;
@@ -17,53 +18,73 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Toast;
 
-import com.android.volley.AuthFailureError;
 import com.android.volley.DefaultRetryPolicy;
-import com.android.volley.Network;
 import com.android.volley.NetworkResponse;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
-import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.example.cameracustom.MainActivity.bitmap;
+import static com.example.cameracustom.CameraPic.bitmap;
 
-public class PictureActivity extends AppCompatActivity {
+public class UploadPic extends AppCompatActivity{
 
     private ImageView camera_preview;
     private Button button;
-    private String url = "http://192.168.8.101:3000/upload";
+    Button BackButton;
+    private String url = "http://192.168.8.111:3000/upload";
     private static final String IMAGE_DIRECTORY = "/CustomImage";
     private String pathFile;
     private static final int RGB_MASK = 0x00FFFFFF;
+    public static String resultResponse;
+    public static String neck;
+    public static String height;
+    public static String  waist;
+    public static String shoulders;
+    public static String sleeve;
+    Bitmap correctedBitmap;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main2);
+        setContentView(R.layout.upload);
 
         camera_preview = findViewById(R.id.camera_preview);
         button = findViewById(R.id.button);
+        BackButton=findViewById(R.id.backButton);
 
 
-        Bitmap corecctedBitmap = RotateBitmap(bitmap,(90*3));
-        corecctedBitmap = invert(corecctedBitmap);
-        camera_preview.setImageBitmap(corecctedBitmap);
+        correctedBitmap = RotateBitmap(bitmap,(90*3));
+//        correctedBitmap = invert(correctedBitmap);
+        camera_preview.setImageBitmap(correctedBitmap);
 
-        saveImage(corecctedBitmap);
+
+
+
+        saveImage(correctedBitmap);
+
+
+        BackButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(UploadPic.this,CameraPic.class);
+                startActivity(intent);
+            }
+        });
     }
+
 
     public static byte[] getFileDataFromDrawable(Context context, Drawable drawable) {
         Bitmap bitmap = ((BitmapDrawable) drawable).getBitmap();
@@ -111,17 +132,29 @@ public class PictureActivity extends AppCompatActivity {
 
     }
 
-    public void onClicks(View view){
+    public void onClick(View view){
+
         VolleyMultipartRequest stringRequest = new VolleyMultipartRequest(Request.Method.POST,
                 url,
                 new Response.Listener<NetworkResponse>() {
                     @Override
                     public void onResponse(NetworkResponse response) {
-                        String resultResponse = new String(response.data);
+                        resultResponse = new String(response.data);
                         Toast.makeText(getApplicationContext(),
                                 resultResponse, Toast.LENGTH_LONG).show();
+                        try {
+                            JSONObject object=new JSONObject(resultResponse);
+                            height=object.getString("height");
+                            neck=object.getString("neck");
+                            sleeve=object.getString("sleeve");
+                            waist=object.getString("waist");
+                            shoulders=object.getString("shoulders");
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
 
                     }
+
 
 
                 }, new Response.ErrorListener() {
@@ -129,14 +162,17 @@ public class PictureActivity extends AppCompatActivity {
             public void onErrorResponse(VolleyError error) {
                 Toast.makeText(getApplicationContext(), "error: "+
                         error.toString(), Toast.LENGTH_LONG).show();
+                Intent intent = new Intent(getApplicationContext(),results.class);
+                startActivity(intent);
             }
+
         }){
             @Override
             protected Map<String, DataPart> getByteData() {
                 Map<String, DataPart> params = new HashMap<>();
                 // file name could found file base or direct access from real path
                 // for now just get bitmap data from ImageView
-                Drawable b = new BitmapDrawable(getResources(), bitmap);
+                Drawable b = new BitmapDrawable(getResources(), correctedBitmap);
                 params.put("avatar", new DataPart("file_avatar.jpg",
                         getFileDataFromDrawable(getBaseContext(),
                             b), "image/jpeg"));
@@ -155,8 +191,11 @@ public class PictureActivity extends AppCompatActivity {
                 DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
                 DefaultRetryPolicy.DEFAULT_BACKOFF_MULT
         ));
-        RequestQueue requestQueue = Volley.newRequestQueue(PictureActivity.this);
+        RequestQueue requestQueue = Volley.newRequestQueue(UploadPic.this);
         requestQueue.add(stringRequest);
+
+        Intent intent = new Intent(UploadPic.this,results.class);
+        startActivity(intent);
     }
 
     public String imageToString(Bitmap bitmap){

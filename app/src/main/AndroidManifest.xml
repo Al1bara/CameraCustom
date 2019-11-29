@@ -30,20 +30,21 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         android:usesCleartextTraffic="true">
-        <activity android:name=".SplachScreen"
+        <activity android:name=".tailors"></activity>
+        <activity android:name=".customize" />
+        <activity android:name=".results" />
+        <activity
+            android:name=".SplachScreen"
             android:theme="@style/SplashScreen">
-
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-
         </activity>
-        <activity android:name=".PictureActivity" />
-        <activity android:name=".firstActivity" />
-        <activity android:name=".MainActivity">
-        </activity>
+        <activity android:name=".UploadPic" />
+        <activity android:name=".Declaration" />
+        <activity android:name=".CameraPic" />
     </application>
 
 </manifest>
