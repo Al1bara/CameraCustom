@@ -25,7 +25,7 @@
     </FrameLayout>
 
     <Button
-        android:id="@+id/button"
+        android:id="@+id/upload"
         style="@style/Widget.AppCompat.Button.Small"
         android:layout_width="83dp"
         android:layout_height="83dp"

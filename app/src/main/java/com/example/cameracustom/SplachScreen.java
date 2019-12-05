@@ -9,7 +9,7 @@ import android.support.v7.app.AppCompatActivity;
 
 
 public class SplachScreen extends AppCompatActivity {
-    private static int SPLACH_TIME_OUT=3000;
+    private static int SPLACH_TIME_OUT = 3000;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -21,8 +21,7 @@ public class SplachScreen extends AppCompatActivity {
                 startActivity(home);
                 finish();
             }
-        },SPLACH_TIME_OUT);
-
+        }, SPLACH_TIME_OUT);
 
 
     }

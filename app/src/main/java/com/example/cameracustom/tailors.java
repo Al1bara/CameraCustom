@@ -21,16 +21,16 @@ public class tailors extends AppCompatActivity {
         switch (view.getId()){
             case R.id.b1:
 
-                Toast.makeText(this," Your Order has been sent to Tailor 1 ",Toast.LENGTH_LONG).show();
-                break;
-            case R.id.b2:
                 Toast.makeText(this," Your Order has been sent to Tailor 2 ",Toast.LENGTH_LONG).show();
                 break;
+            case R.id.b2:
+                Toast.makeText(this," Your Order has been sent to Tailor 1 ",Toast.LENGTH_LONG).show();
+                break;
             case R.id.b3:
-                Toast.makeText(this," Your Order has been sent to Tailor 3 ",Toast.LENGTH_LONG).show();
+                Toast.makeText(this," Your Order has been sent to Tailor 4 ",Toast.LENGTH_LONG).show();
                 break;
             case R.id.b4:
-                Toast.makeText(this," Your Order has been sent to Tailor 4 ",Toast.LENGTH_LONG).show();
+                Toast.makeText(this," Your Order has been sent to Tailor 3 ",Toast.LENGTH_LONG).show();
                 break;
         }
     }

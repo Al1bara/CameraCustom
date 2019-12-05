@@ -49,7 +49,7 @@ public class CameraPic extends AppCompatActivity implements SensorEventListener 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.camera);
         frameLayout = findViewById(R.id.camera_preview);
-        button = findViewById(R.id.button);
+        button = findViewById(R.id.upload);
         sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
         rotationSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR);
         counter = findViewById(R.id.counter);
@@ -60,7 +60,7 @@ public class CameraPic extends AppCompatActivity implements SensorEventListener 
 
 
         // Create Camera preview to set our activity
-        show = new Show(this,camera);
+        show = new Show(this, camera);
         frameLayout.addView(show);
         CheckCameraPermissions();
 
@@ -71,12 +71,14 @@ public class CameraPic extends AppCompatActivity implements SensorEventListener 
         camera.setParameters(params);
 
     }
-    public void onClick(View view){
-        new CountDownTimer(9000,1000){
+
+    public void onClick(View view) {
+        new CountDownTimer(9000, 1000) {
             @Override
             public void onTick(long millisUntilFinished) {
-                counter.setText(""+((int)millisUntilFinished/1000));
+                counter.setText("" + ((int) millisUntilFinished / 1000));
             }
+
             @Override
             public void onFinish() {
                 counter.setVisibility(View.INVISIBLE);
@@ -89,56 +91,55 @@ public class CameraPic extends AppCompatActivity implements SensorEventListener 
 
 
     // Create a listener
-        @Override
-        public void onSensorChanged(SensorEvent sensorEvent) {
-            float[] rotationMatrix = new float[16];
-            SensorManager.getRotationMatrixFromVector(rotationMatrix, sensorEvent.values);
-            float[] remappedRotationMatrix = new float[16];
-            SensorManager.remapCoordinateSystem(rotationMatrix, SensorManager.AXIS_X,
-                    SensorManager.AXIS_Z, remappedRotationMatrix);
+    @Override
+    public void onSensorChanged(SensorEvent sensorEvent) {
+        float[] rotationMatrix = new float[16];
+        SensorManager.getRotationMatrixFromVector(rotationMatrix, sensorEvent.values);
+        float[] remappedRotationMatrix = new float[16];
+        SensorManager.remapCoordinateSystem(rotationMatrix, SensorManager.AXIS_X,
+                SensorManager.AXIS_Z, remappedRotationMatrix);
 
-            // Convert to orientations
-            float[] orientations = new float[3];
-            SensorManager.getOrientation(remappedRotationMatrix, orientations);
-            // convert rad to degree
-            for(int i = 0; i < 3; i++) {
-                orientations[i] = (float)(Math.toDegrees(orientations[i]));
-            }
+        // Convert to orientations
+        float[] orientations = new float[3];
+        SensorManager.getOrientation(remappedRotationMatrix, orientations);
+        // convert rad to degree
+        for (int i = 0; i < 3; i++) {
+            orientations[i] = (float) (Math.toDegrees(orientations[i]));
+        }
 
 //             take pic in 90 degree
-            if ((orientations[2] < 1 & orientations[2] > -1) &&
-                    (orientations[1] < 11 & orientations[1] > -1) ){
-                button.setVisibility(View.VISIBLE);
-            }else
-                button.setVisibility(View.GONE);
+        if ((orientations[2] < 1 & orientations[2] > -1) &&
+                (orientations[1] < 11 & orientations[1] > -1)) {
+            button.setVisibility(View.VISIBLE);
+        } else
+            button.setVisibility(View.GONE);
     }
 
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int i) {
+    }
+
+
+    //        go to upload activity
+    Camera.PictureCallback picture = new Camera.PictureCallback() {
         @Override
-        public void onAccuracyChanged(Sensor sensor, int i) {}
+        public void onPictureTaken(byte[] data, Camera camera) {
+            bitmap = BitmapFactory.decodeByteArray(data, 0, data.length);
+            Intent intent = new Intent(CameraPic.this, UploadPic.class);
+            startActivity(intent);
+        }
+    };
 
-
-
-//        go to upload activity
-        Camera.PictureCallback picture = new Camera.PictureCallback() {
-            @Override
-            public void onPictureTaken(byte[] data, Camera camera) {
-                bitmap = BitmapFactory.decodeByteArray(data, 0, data.length);
-                Intent intent = new Intent(CameraPic.this, UploadPic.class);
-                startActivity(intent);
-            }
-        };
-
-    private static Camera openFrontFacingCamera()
-    {
+    private static Camera openFrontFacingCamera() {
         int cameraCount = 0;
         Camera cam = null;
         Camera.CameraInfo cameraInfo = new Camera.CameraInfo();
         cameraCount = Camera.getNumberOfCameras();
-        for ( int camIdx = 0; camIdx < cameraCount; camIdx++ ) {
-            Camera.getCameraInfo( camIdx, cameraInfo );
-            if ( cameraInfo.facing == Camera.CameraInfo.CAMERA_FACING_FRONT  ) {
+        for (int camIdx = 0; camIdx < cameraCount; camIdx++) {
+            Camera.getCameraInfo(camIdx, cameraInfo);
+            if (cameraInfo.facing == Camera.CameraInfo.CAMERA_FACING_FRONT) {
                 try {
-                    cam = Camera.open( camIdx );
+                    cam = Camera.open(camIdx);
                 } catch (RuntimeException e) {
                     e.printStackTrace();
                 }
@@ -161,17 +162,15 @@ public class CameraPic extends AppCompatActivity implements SensorEventListener 
         }
     }
 
-    public static Camera getCameraInstance(){
+    public static Camera getCameraInstance() {
         Camera c = null;
         try {
             c = openFrontFacingCamera(); // attempt to get a Camera instance
-        }
-        catch (Exception e){
+        } catch (Exception e) {
             // Camera is not available (in use or does not exist)
         }
         return c; // returns null if camera is unavailable
     }
-
 
 
     @Override

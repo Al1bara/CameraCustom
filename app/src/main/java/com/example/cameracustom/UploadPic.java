@@ -16,6 +16,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.android.volley.DefaultRetryPolicy;
@@ -39,47 +40,44 @@ import java.util.Map;
 
 import static com.example.cameracustom.CameraPic.bitmap;
 
-public class UploadPic extends AppCompatActivity{
+public class UploadPic extends AppCompatActivity {
 
     private ImageView camera_preview;
     private Button button;
     Button BackButton;
-    private String url = "http://192.168.8.111:3000/upload";
+    private String url = "http://192.168.8.101:3000/upload";
     private static final String IMAGE_DIRECTORY = "/CustomImage";
     private String pathFile;
     private static final int RGB_MASK = 0x00FFFFFF;
     public static String resultResponse;
     public static String neck;
     public static String height;
-    public static String  waist;
+    public static String waist;
     public static String shoulders;
     public static String sleeve;
-    Bitmap correctedBitmap;
+    Bitmap correctedBitmap, negativeBitmap;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.upload);
-
+        findViewById(R.id.progressBarCircularIndeterminate).setVisibility(View.GONE);
         camera_preview = findViewById(R.id.camera_preview);
-        button = findViewById(R.id.button);
-        BackButton=findViewById(R.id.backButton);
+        button = findViewById(R.id.upload);
+        BackButton = findViewById(R.id.backButton);
 
 
-        correctedBitmap = RotateBitmap(bitmap,(90*3));
-//        correctedBitmap = invert(correctedBitmap);
-        camera_preview.setImageBitmap(correctedBitmap);
-
-
-
+        correctedBitmap = RotateBitmap(bitmap, (90 * 3));
+        negativeBitmap = RotateBitmap(bitmap, (90 * 3));
+        negativeBitmap = invert(correctedBitmap);
+        camera_preview.setImageBitmap(negativeBitmap);
 
         saveImage(correctedBitmap);
-
 
         BackButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(UploadPic.this,CameraPic.class);
+                Intent intent = new Intent(UploadPic.this, CameraPic.class);
                 startActivity(intent);
             }
         });
@@ -92,7 +90,8 @@ public class UploadPic extends AppCompatActivity{
         bitmap.compress(Bitmap.CompressFormat.JPEG, 80, byteArrayOutputStream);
         return byteArrayOutputStream.toByteArray();
     }
-    public String saveImage(Bitmap myBitmap){
+
+    public String saveImage(Bitmap myBitmap) {
         ByteArrayOutputStream bytes = new ByteArrayOutputStream();
         myBitmap.compress(Bitmap.CompressFormat.JPEG, 100, bytes);
         File wallpaperDirectory = new File(
@@ -132,41 +131,48 @@ public class UploadPic extends AppCompatActivity{
 
     }
 
-    public void onClick(View view){
+    public void onClick(View view) {
+        findViewById(R.id.progressBarCircularIndeterminate).setVisibility(View.VISIBLE);
+        findViewById(R.id.upload).setEnabled(false);
 
         VolleyMultipartRequest stringRequest = new VolleyMultipartRequest(Request.Method.POST,
                 url,
                 new Response.Listener<NetworkResponse>() {
                     @Override
                     public void onResponse(NetworkResponse response) {
+                        findViewById(R.id.progressBarCircularIndeterminate).setVisibility(View.INVISIBLE);
+                        findViewById(R.id.upload).setEnabled(true);
                         resultResponse = new String(response.data);
                         Toast.makeText(getApplicationContext(),
                                 resultResponse, Toast.LENGTH_LONG).show();
                         try {
-                            JSONObject object=new JSONObject(resultResponse);
-                            height=object.getString("height");
-                            neck=object.getString("neck");
-                            sleeve=object.getString("sleeve");
-                            waist=object.getString("waist");
-                            shoulders=object.getString("shoulders");
+                            JSONObject object = new JSONObject(resultResponse);
+                            height = object.getString("height");
+                            neck = object.getString("neck");
+                            sleeve = object.getString("sleeve");
+                            waist = object.getString("waist");
+                            shoulders = object.getString("shoulders");
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
+                        Intent intent = new Intent(UploadPic.this, results.class);
+                        startActivity(intent);
+
 
                     }
-
 
 
                 }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                Toast.makeText(getApplicationContext(), "error: "+
+                findViewById(R.id.progressBarCircularIndeterminate).setVisibility(View.INVISIBLE);
+                findViewById(R.id.upload).setEnabled(true);
+                Toast.makeText(getApplicationContext(), "error: " +
                         error.toString(), Toast.LENGTH_LONG).show();
-                Intent intent = new Intent(getApplicationContext(),results.class);
-                startActivity(intent);
             }
 
-        }){
+        }) {
+            //Http header
             @Override
             protected Map<String, DataPart> getByteData() {
                 Map<String, DataPart> params = new HashMap<>();
@@ -175,11 +181,13 @@ public class UploadPic extends AppCompatActivity{
                 Drawable b = new BitmapDrawable(getResources(), correctedBitmap);
                 params.put("avatar", new DataPart("file_avatar.jpg",
                         getFileDataFromDrawable(getBaseContext(),
-                            b), "image/jpeg"));
+                                b), "image/jpeg"));
 
                 return params;
             }
+
             private final String boundary = "apiclient-" + System.currentTimeMillis();
+
             @Override
             public String getBodyContentType() {
                 return "multipart/form-data;boundary=" + boundary;
@@ -194,15 +202,14 @@ public class UploadPic extends AppCompatActivity{
         RequestQueue requestQueue = Volley.newRequestQueue(UploadPic.this);
         requestQueue.add(stringRequest);
 
-        Intent intent = new Intent(UploadPic.this,results.class);
-        startActivity(intent);
+
     }
 
-    public String imageToString(Bitmap bitmap){
+    public String imageToString(Bitmap bitmap) {
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         bitmap.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream);
-        byte [] imgBytes =  byteArrayOutputStream.toByteArray();
-        return Base64.encodeToString(imgBytes,Base64.DEFAULT);
+        byte[] imgBytes = byteArrayOutputStream.toByteArray();
+        return Base64.encodeToString(imgBytes, Base64.DEFAULT);
     }
 
     public void rotateImage() throws Exception {
@@ -211,7 +218,7 @@ public class UploadPic extends AppCompatActivity{
                 ExifInterface.ORIENTATION_UNDEFINED);
         Matrix matrix = new Matrix();
 
-        switch(orientation) {
+        switch (orientation) {
 
             case ExifInterface.ORIENTATION_ROTATE_90:
                 matrix.setRotate(90);
@@ -227,14 +234,13 @@ public class UploadPic extends AppCompatActivity{
 
             default:
         }
-         bitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(),
+        bitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(),
                 matrix, true);
 
     }
 
 
-    public static Bitmap RotateBitmap(Bitmap source, float angle)
-    {
+    public static Bitmap RotateBitmap(Bitmap source, float angle) {
         Matrix matrix = new Matrix();
         matrix.postRotate(angle);
         return Bitmap.createBitmap(source, 0, 0, source.getWidth(), source.getHeight(), matrix, true);
